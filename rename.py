@@ -1,0 +1,175 @@
+import argparse
+import math
+import os
+import re
+import shutil
+import zipfile
+
+import archive_lib
+
+
+def main(arguments):
+    try:
+        archive_path = archive_lib.verify_archive_path(arguments['archivePath'])
+
+        item_path = find_item(archive_path, arguments)
+        if not item_path:
+            return
+
+        new_item_name = get_new_name(item_path)
+        if not new_item_name:
+            return
+
+        rename_item(item_path, new_item_name, arguments)
+
+    except archive_lib.ArchivePathError, e:
+        print "path error: %s" % e.message
+
+
+def find_item(archive_path, arguments):
+    compiled_re = re.compile(('.*%(match)s.*' % arguments), flags=re.IGNORECASE)
+
+    found = 0
+    found_file_name = ""
+    for file_name in sorted(os.listdir(archive_path)):
+        if file_name.startswith('.'):
+            continue
+
+        if file_name[-4:] != '.zip':
+            continue
+
+        if compiled_re and compiled_re.match(file_name):
+            found += 1
+            found_file_name = file_name
+
+    if found == 0:
+        print "could not find '%(match)s'" % arguments
+    elif found > 1:
+        print "match '%(match)s' is ambiguous" % arguments  
+    else:
+        return os.path.join(archive_path, found_file_name)
+
+
+def get_new_name(item_path):
+    item_file = os.path.basename(item_path)
+    print "rename file and contained folder: %s" % item_file
+    item_date = str.strip(raw_input("new date: "))
+    if len(item_date) == 0:
+        print "invalid item date"
+        return
+
+    item_artist = str.strip(raw_input("new artist: "))
+    if len(item_artist) == 0:
+        print "invalid item artist"
+        return
+
+    item_title = str.strip(raw_input("new title: "))
+    if len(item_title) == 0:
+        print "invalid item title"
+        return
+
+    item_location = str.strip(raw_input("new location: "))
+    if len(item_location) == 0:
+        print "invalid item location"
+        return
+    
+    new_full_name = '%s %s - %s - %s' % (item_date, item_artist, item_title, item_location)
+
+    if '%s.zip' % new_full_name == item_file:
+        print "new name is identical to old name"
+        return
+
+    try:
+        new_full_name_ascii = new_full_name.decode('ascii')
+    except UnicodeDecodeError:
+        print "only ascii please"
+        return
+
+    print "item will be renamed to: %s.zip" % new_full_name
+    if raw_input("continue (y/n)? ").lower() == "y":
+        return new_full_name
+
+
+def rename_item(item_path, new_item_name, arguments):
+    tmp_path = arguments['tmpPath']
+    
+    print "-- copying item to tmp path"
+    shutil.copy2(item_path, tmp_path)
+    
+    print "-- unzipping item"
+    item_file = os.path.basename(item_path)
+    tmp_file = os.path.join(tmp_path, item_file)
+    unzipped_folder_name = item_file[:-4]
+    zip_ref = zipfile.ZipFile(tmp_file, 'r')
+    zip_ref.extractall(tmp_path)
+
+    print "-- deleting tmp zip"
+    os.remove(tmp_file)
+
+    print "-- renaming item folder"
+    src = os.path.join(tmp_path, unzipped_folder_name)
+    dst = os.path.join(tmp_path, new_item_name)
+    os.rename(src, dst)
+
+    print "-- zipping item"
+    os.chdir(tmp_path)
+    with zipfile.ZipFile(os.path.join(dst + '.zip'), 
+                         'w', 
+                         compression=zipfile.ZIP_DEFLATED, 
+                         allowZip64=True) as zf:
+        for root, dirs, files in os.walk(new_item_name):
+            if arguments['v']:
+                if dirs:
+                    print "-- in directory %s, containing %s:" % (root, dirs)
+                else:
+                    print "-- in directory %s:" % root
+            for filename in files:
+                if archive_lib.is_ignored(filename):
+                    if arguments['v']:
+                        print "-- skipping: %s" % filename
+                    continue
+                if arguments['v']:
+                    print "-- zipping: %s" % filename
+                zf.write(os.path.join(root, filename))
+
+    print "-- deleting renamed item folder"
+    shutil.rmtree(dst)
+
+    print "-- copying renamed item back into archive"
+    archive_path = os.path.dirname(item_path)
+    new_tmp_item = '%s.zip' % dst
+    shutil.copy2(new_tmp_item, archive_path)
+
+    print "-- removing tmp zip"
+    os.remove(os.path.join(tmp_path, new_tmp_item))
+
+    print "-- comparing file sizes"
+    renamed_path = os.path.join(archive_path, new_item_name + '.zip')
+    renamed_info = os.stat(renamed_path)
+    original_info = os.stat(item_path)
+    if arguments['v']:
+        print "-- original: %s bytes, renamed: %s bytes" % (original_info.st_size, renamed_info.st_size)
+    if math.fabs(original_info.st_size - renamed_info.st_size) > (original_info.st_size / 20):
+        renamed_size = archive_lib.sizeof_fmt(renamed_info.st_size)
+        original_size = archive_lib.sizeof_fmt(original_info.st_size)
+        print "-- file sizes differ by more than 5%: %s (new) vs. %s (old)" % (renamed_size, original_size)
+        if raw_input("remove original item (y/n)? ").lower() != "y":
+            print "clean up yourself then - done."
+            return
+
+    print "-- removing original item"
+    os.remove(item_path)
+
+    print "done."
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Rename a zip file and its contained folder')
+    parser.add_argument('archivePath')
+    parser.add_argument('tmpPath')
+    parser.add_argument('match')
+    parser.add_argument('-v', help='verbose', action='store_true')
+
+    print
+    main(vars(parser.parse_args()))
+    print
