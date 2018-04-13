@@ -37,7 +37,6 @@ def split_file_name(file_name):
         return None
 
 
-
 def print_info(file_name, archive_path):
     print_file_name_data(file_name)
 
