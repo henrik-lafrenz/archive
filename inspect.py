@@ -44,13 +44,14 @@ def print_info(file_name, archive_path):
     info_file_name = None
     with zipfile.ZipFile(path) as zf:
         for member in zf.infolist():
-            if (os.path.basename(member.filename) in ['info.rtf', 'info.txt']):
-
-                info_file_name = member.filename 
-                content = zf.read(info_file_name)
+            basename = os.path.basename(member.filename)
+            if basename in ['info.rtf', 'info.txt']:
+                print "%s:" % basename
+                print '\n' + '-' * 80 + '\n'
+                content = zf.read(member.filename)
                 for byte in content:
                     sys.stdout.write(byte)
-                print
+                print '\n' + '-' * 80 + '\n'
                 return
 
     print "no info file found."
