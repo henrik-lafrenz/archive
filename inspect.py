@@ -31,10 +31,10 @@ def split_file_name(file_name):
     name = file_name[11:]
     try:
         artist, title, location = name.split(' - ')
+        return (date, artist, title, location)
     except ValueError:
         print "problem with item name: %s.zip" % file_name
-
-    return (date, artist, title, location)
+        return None
 
 
 
@@ -68,7 +68,11 @@ def print_item(file_name, archive_path):
 
 
 def print_file_name_data(file_name):
-    date, artist, title, location = split_file_name(file_name)
+    res = split_file_name(file_name)
+    if not res:
+        print "problem with item name: %s.zip" % file_name
+
+    date, artist, title, location = res
     print "date: %s" % date
     print "artist: %s" % artist
     print "title: %s" % title
@@ -79,7 +83,11 @@ def print_items(file_names):
     print "| date       | artist                         | title                                    | location                       |"     
     print "+------------+--------------------------------+------------------------------------------+--------------------------------+"
     for file_name in file_names:
-        date, artist, title, location = split_file_name(file_name)
+        res = split_file_name(file_name)
+        if not res:
+            return
+
+        date, artist, title, location = res
         print "| %s | %-30s | %-40s | %-30s |" % (date, artist[:30], str(title)[:40], location[:30])
 
 
