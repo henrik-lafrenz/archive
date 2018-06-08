@@ -36,3 +36,27 @@ def sizeof_fmt(num):
 def is_ignored(filename):
     return os.path.basename(filename).startswith('.') \
         or filename.startswith('__MACOSX')
+
+
+def get_name():
+    item_date = str.strip(raw_input("new date: "))
+    if len(item_date) == 0:
+        print "invalid item date"
+        return
+
+    item_artist = str.strip(raw_input("new artist: "))
+    if len(item_artist) == 0:
+        print "invalid item artist"
+        return
+
+    item_title = str.strip(raw_input("new title: "))
+    if len(item_title) == 0:
+        print "invalid item title"
+        return
+
+    item_location = str.strip(raw_input("new location: "))
+    if len(item_location) == 0:
+        print "invalid item location"
+        return
+
+    return '%s %s - %s - %s' % (item_date, item_artist, item_title, item_location)

@@ -53,27 +53,8 @@ def find_item(archive_path, arguments):
 def get_new_name(item_path):
     item_file = os.path.basename(item_path)
     print "rename file and contained folder: %s" % item_file
-    item_date = str.strip(raw_input("new date: "))
-    if len(item_date) == 0:
-        print "invalid item date"
-        return
 
-    item_artist = str.strip(raw_input("new artist: "))
-    if len(item_artist) == 0:
-        print "invalid item artist"
-        return
-
-    item_title = str.strip(raw_input("new title: "))
-    if len(item_title) == 0:
-        print "invalid item title"
-        return
-
-    item_location = str.strip(raw_input("new location: "))
-    if len(item_location) == 0:
-        print "invalid item location"
-        return
-    
-    new_full_name = '%s %s - %s - %s' % (item_date, item_artist, item_title, item_location)
+    new_full_name = archive_lib.get_name()
 
     if '%s.zip' % new_full_name == item_file:
         print "new name is identical to old name"
