@@ -20,7 +20,7 @@ def main(arguments):
     with open(path, 'a'):
         os.utime(path, None)
 
-    print "-- done preparing: %s" % full_name
+    print("-- done preparing: %s" % full_name)
 
 
 if __name__ == '__main__':
