@@ -39,24 +39,24 @@ def is_ignored(filename):
 
 
 def get_name():
-    item_date = str.strip(raw_input("new date: "))
+    item_date = str.strip(input("new date: "))
     if len(item_date) == 0:
-        print "invalid item date"
+        print("invalid item date")
         return
 
-    item_artist = str.strip(raw_input("new artist: "))
+    item_artist = str.strip(input("new artist: "))
     if len(item_artist) == 0:
-        print "invalid item artist"
+        print("invalid item artist")
         return
 
-    item_title = str.strip(raw_input("new title: "))
+    item_title = str.strip(input("new title: "))
     if len(item_title) == 0:
-        print "invalid item title"
+        print("invalid item title")
         return
 
-    item_location = str.strip(raw_input("new location: "))
+    item_location = str.strip(input("new location: "))
     if len(item_location) == 0:
-        print "invalid item location"
+        print("invalid item location")
         return
 
     return '%s %s - %s - %s' % (item_date, item_artist, item_title, item_location)

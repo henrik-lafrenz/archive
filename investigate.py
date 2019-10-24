@@ -13,7 +13,7 @@ def main(arguments):
         file_names = find_items(archive_path, arguments)
 
         if len(file_names) == 0:
-            print "no items found.\n"
+            print("no items found.\n")
         elif len(file_names) == 1:
             if arguments['i']:
                 print_info(file_names[0], archive_path)
@@ -22,8 +22,8 @@ def main(arguments):
         else:
             print_items(file_names)
 
-    except archive_lib.ArchivePathError, e:
-        print "path error: %s" % e. message
+    except archive_lib.ArchivePathError as e:
+        print("path error: %s" % e. message)
 
 
 def split_file_name(file_name):
@@ -33,7 +33,7 @@ def split_file_name(file_name):
         artist, title, location = name.split(' - ')
         return (date, artist, title, location)
     except ValueError:
-        print "problem with item name: %s.zip" % file_name
+        print("problem with item name: %s.zip" % file_name)
         return None
 
 
@@ -46,15 +46,13 @@ def print_info(file_name, archive_path):
         for member in zf.infolist():
             basename = os.path.basename(member.filename)
             if basename in ['info.rtf', 'info.txt']:
-                print "%s:" % basename
-                print '\n' + '-' * 80 + '\n'
-                content = zf.read(member.filename)
-                for byte in content:
-                    sys.stdout.write(byte)
-                print '\n' + '-' * 80 + '\n'
+                print("%s:" % basename)
+                print('\n' + '-' * 80 + '\n')
+                print(zf.read(member.filename).decode('utf-8'))
+                print('\n' + '-' * 80 + '\n')
                 return
 
-    print "no info file found."
+    print("no info file found.")
 
 
 def print_item(file_name, archive_path):
@@ -64,31 +62,31 @@ def print_item(file_name, archive_path):
     with zipfile.ZipFile(path) as zf:
         for member in zf.infolist():
             if not archive_lib.is_ignored(member.filename):
-                print "-- %s" % member.filename
+                print("-- %s" % member.filename)
 
 
 def print_file_name_data(file_name):
     res = split_file_name(file_name)
     if not res:
-        print "problem with item name: %s.zip" % file_name
+        print("problem with item name: %s.zip" % file_name)
 
     date, artist, title, location = res
-    print "date: %s" % date
-    print "artist: %s" % artist
-    print "title: %s" % title
-    print "location: %s\n" % location
+    print("date: %s" % date)
+    print("artist: %s" % artist)
+    print("title: %s" % title)
+    print("location: %s\n" % location)
 
 
 def print_items(file_names):
-    print "| date       | artist                         | title                                    | location                       |"     
-    print "+------------+--------------------------------+------------------------------------------+--------------------------------+"
+    print("| date       | artist                         | title                                    | location                       |"     )
+    print("+------------+--------------------------------+------------------------------------------+--------------------------------+")
     for file_name in file_names:
         res = split_file_name(file_name)
         if not res:
             return
 
         date, artist, title, location = res
-        print "| %s | %-30s | %-40s | %-30s |" % (date, artist[:30], str(title)[:40], location[:30])
+        print("| %s | %-30s | %-40s | %-30s |" % (date, artist[:30], str(title)[:40], location[:30]))
 
 
 def find_items(archive_path, arguments):
@@ -105,7 +103,7 @@ def find_items(archive_path, arguments):
             continue
 
         if file_name[-4:] != '.zip':
-            print "ignoring non-zip file: %s" % file_name
+            print("ignoring non-zip file: %s" % file_name)
             end_with_lb = True
             continue
 
@@ -122,8 +120,7 @@ if __name__ == '__main__':
     parser.add_argument('archivePath')
     parser.add_argument('--match')
     parser.add_argument('-i', help='print info', action='store_true')
-    
+
     print
     main(vars(parser.parse_args()))
     print
-    
