@@ -90,6 +90,30 @@ def find_items(archive_path, arguments):
     return file_names
 
 
+def find_item(archive_path, arguments):
+    compiled_re = re.compile(('.*%(match)s.*' % arguments), flags=re.IGNORECASE)
+
+    found = 0
+    found_file_name = ""
+    for file_name in sorted(os.listdir(archive_path)):
+        if file_name.startswith('.'):
+            continue
+
+        if file_name[-4:] != '.zip':
+            continue
+
+        if compiled_re and compiled_re.match(file_name):
+            found += 1
+            found_file_name = file_name
+
+    if found == 0:
+        print("could not find '%(match)s'" % arguments)
+    elif found > 1:
+        print("match '%(match)s' is ambiguous" % arguments)
+    else:
+        return os.path.join(archive_path, found_file_name)
+
+
 def copy_to_tmp(tmp_path, item_path):
     print("-- copying item to tmp path")
     shutil.copy2(item_path, tmp_path)

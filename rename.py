@@ -12,7 +12,7 @@ def main(arguments):
     try:
         archive_path = archive_lib.verify_archive_path(arguments['archivePath'])
 
-        item_path = find_item(archive_path, arguments)
+        item_path = archive_lib.find_item(archive_path, arguments)
         if not item_path:
             return
 
@@ -24,30 +24,6 @@ def main(arguments):
 
     except archive_lib.ArchivePathError as e:
         print("path error: %s" % e.message)
-
-
-def find_item(archive_path, arguments):
-    compiled_re = re.compile(('.*%(match)s.*' % arguments), flags=re.IGNORECASE)
-
-    found = 0
-    found_file_name = ""
-    for file_name in sorted(os.listdir(archive_path)):
-        if file_name.startswith('.'):
-            continue
-
-        if file_name[-4:] != '.zip':
-            continue
-
-        if compiled_re and compiled_re.match(file_name):
-            found += 1
-            found_file_name = file_name
-
-    if found == 0:
-        print("could not find '%(match)s'" % arguments)
-    elif found > 1:
-        print("match '%(match)s' is ambiguous" % arguments)
-    else:
-        return os.path.join(archive_path, found_file_name)
 
 
 def get_new_name(item_path):
