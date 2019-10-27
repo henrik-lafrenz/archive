@@ -1,6 +1,7 @@
 import os
 import re
 import shutil
+import zipfile
 
 
 ARCHIVE_BASE = 'ARK'
@@ -117,3 +118,14 @@ def find_item(archive_path, arguments):
 def copy_to_tmp(tmp_path, item_path):
     print("-- copying item to tmp path")
     shutil.copy2(item_path, tmp_path)
+
+
+def unzip_item(tmp_path, item_path):
+    print("-- unzipping item")
+    item_file = os.path.basename(item_path)
+    tmp_file = os.path.join(tmp_path, item_file)
+    unzipped_folder_name = item_file[:-4]
+    zip_ref = zipfile.ZipFile(tmp_file, 'r')
+    zip_ref.extractall(tmp_path)
+
+    return (tmp_file, unzipped_folder_name)

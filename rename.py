@@ -52,12 +52,7 @@ def rename_item(item_path, new_item_name, arguments):
 
     archive_lib.copy_to_tmp(tmp_path, item_path)
 
-    print("-- unzipping item")
-    item_file = os.path.basename(item_path)
-    tmp_file = os.path.join(tmp_path, item_file)
-    unzipped_folder_name = item_file[:-4]
-    zip_ref = zipfile.ZipFile(tmp_file, 'r')
-    zip_ref.extractall(tmp_path)
+    (tmp_file, unzipped_folder_name) = archive_lib.unzip_item(tmp_path, item_path)
 
     print("-- deleting tmp zip")
     os.remove(tmp_file)
