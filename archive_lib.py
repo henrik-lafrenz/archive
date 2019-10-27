@@ -129,3 +129,8 @@ def unzip_item(tmp_path, item_path):
     zip_ref.extractall(tmp_path)
 
     return (tmp_file, unzipped_folder_name)
+
+
+def delete_tmp_zip(tmp_file):
+    print("-- deleting tmp zip")
+    os.remove(tmp_file)
