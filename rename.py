@@ -74,8 +74,7 @@ def get_new_name(item_path):
 def rename_item(item_path, new_item_name, arguments):
     tmp_path = arguments['tmpPath']
 
-    print("-- copying item to tmp path")
-    shutil.copy2(item_path, tmp_path)
+    archive_lib.copy_to_tmp(tmp_path, item_path)
 
     print("-- unzipping item")
     item_file = os.path.basename(item_path)

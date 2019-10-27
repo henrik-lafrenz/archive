@@ -1,5 +1,6 @@
 import os
 import re
+import shutil
 
 
 ARCHIVE_BASE = 'ARK'
@@ -87,3 +88,8 @@ def find_items(archive_path, arguments):
         print
 
     return file_names
+
+
+def copy_to_tmp(tmp_path, item_path):
+    print("-- copying item to tmp path")
+    shutil.copy2(item_path, tmp_path)
