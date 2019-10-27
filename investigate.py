@@ -1,6 +1,5 @@
 import argparse
 import os
-import re
 import sys
 import zipfile
 
@@ -10,7 +9,7 @@ import archive_lib
 def main(arguments):
     try:
         archive_path = archive_lib.verify_archive_path(arguments['archivePath'])
-        file_names = find_items(archive_path, arguments)
+        file_names = archive_lib.find_items(archive_path, arguments)
 
         if len(file_names) == 0:
             print("no items found.\n")
@@ -87,32 +86,6 @@ def print_items(file_names):
 
         date, artist, title, location = res
         print("| %s | %-30s | %-40s | %-30s |" % (date, artist[:30], str(title)[:40], location[:30]))
-
-
-def find_items(archive_path, arguments):
-    compiled_re = re.compile(('.*%(match)s.*' % arguments), flags=re.IGNORECASE) if arguments['match'] else None
-    file_names = []
-
-    end_with_lb = False
-
-    for file_name in sorted(os.listdir(archive_path)):
-        if file_name.startswith('.'):
-            continue
-
-        if compiled_re and not compiled_re.match(file_name):
-            continue
-
-        if file_name[-4:] != '.zip':
-            print("ignoring non-zip file: %s" % file_name)
-            end_with_lb = True
-            continue
-
-        file_names.append(file_name[:-4])
-
-    if end_with_lb:
-        print
-
-    return file_names
 
 
 if __name__ == '__main__':

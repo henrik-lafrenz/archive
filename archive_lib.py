@@ -1,4 +1,5 @@
 import os
+import re
 
 
 ARCHIVE_BASE = 'ARK'
@@ -60,3 +61,29 @@ def get_name():
         return
 
     return '%s %s - %s - %s' % (item_date, item_artist, item_title, item_location)
+
+
+def find_items(archive_path, arguments):
+    compiled_re = re.compile(('.*%(match)s.*' % arguments), flags=re.IGNORECASE) if arguments['match'] else None
+    file_names = []
+
+    end_with_lb = False
+
+    for file_name in sorted(os.listdir(archive_path)):
+        if file_name.startswith('.'):
+            continue
+
+        if compiled_re and not compiled_re.match(file_name):
+            continue
+
+        if file_name[-4:] != '.zip':
+            print("ignoring non-zip file: %s" % file_name)
+            end_with_lb = True
+            continue
+
+        file_names.append(file_name[:-4])
+
+    if end_with_lb:
+        print
+
+    return file_names
