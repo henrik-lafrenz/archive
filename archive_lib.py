@@ -1,4 +1,7 @@
 import os
+import re
+import shutil
+import zipfile
 
 
 ARCHIVE_BASE = 'ARK'
@@ -60,3 +63,74 @@ def get_name():
         return
 
     return '%s %s - %s - %s' % (item_date, item_artist, item_title, item_location)
+
+
+def find_items(archive_path, arguments):
+    compiled_re = re.compile(('.*%(match)s.*' % arguments), flags=re.IGNORECASE) if arguments['match'] else None
+    file_names = []
+
+    end_with_lb = False
+
+    for file_name in sorted(os.listdir(archive_path)):
+        if file_name.startswith('.'):
+            continue
+
+        if compiled_re and not compiled_re.match(file_name):
+            continue
+
+        if file_name[-4:] != '.zip':
+            print("ignoring non-zip file: %s" % file_name)
+            end_with_lb = True
+            continue
+
+        file_names.append(file_name[:-4])
+
+    if end_with_lb:
+        print
+
+    return file_names
+
+
+def find_item(archive_path, arguments):
+    compiled_re = re.compile(('.*%(match)s.*' % arguments), flags=re.IGNORECASE)
+
+    found = 0
+    found_file_name = ""
+    for file_name in sorted(os.listdir(archive_path)):
+        if file_name.startswith('.'):
+            continue
+
+        if file_name[-4:] != '.zip':
+            continue
+
+        if compiled_re and compiled_re.match(file_name):
+            found += 1
+            found_file_name = file_name
+
+    if found == 0:
+        print("could not find '%(match)s'" % arguments)
+    elif found > 1:
+        print("match '%(match)s' is ambiguous" % arguments)
+    else:
+        return os.path.join(archive_path, found_file_name)
+
+
+def copy_to_tmp(tmp_path, item_path):
+    print("-- copying item to tmp path")
+    shutil.copy2(item_path, tmp_path)
+
+
+def unzip_item(tmp_path, item_path):
+    print("-- unzipping item")
+    item_file = os.path.basename(item_path)
+    tmp_file = os.path.join(tmp_path, item_file)
+    unzipped_folder_name = item_file[:-4]
+    zip_ref = zipfile.ZipFile(tmp_file, 'r')
+    zip_ref.extractall(tmp_path)
+
+    return (tmp_file, unzipped_folder_name)
+
+
+def delete_tmp_zip(tmp_file):
+    print("-- deleting tmp zip")
+    os.remove(tmp_file)
