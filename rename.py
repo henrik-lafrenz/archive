@@ -102,7 +102,7 @@ def rename_item(item_path, new_item_name, arguments):
     if math.fabs(original_info.st_size - renamed_info.st_size) > (original_info.st_size / 20):
         renamed_size = archive_lib.sizeof_fmt(renamed_info.st_size)
         original_size = archive_lib.sizeof_fmt(original_info.st_size)
-        print("-- file sizes differ by more than 5%: %s (new) vs. %s (old)" % (renamed_size, original_size))
+        print("-- file sizes differ by more than 5%%: %s (new) vs. %s (old)" % (renamed_size, original_size))
         if input("remove original item (y/n)? ").lower() != "y":
             print("clean up yourself then - done.")
             return
