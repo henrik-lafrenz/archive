@@ -26,7 +26,6 @@ def main(arguments):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Open a new item')
     parser.add_argument('tmpPath')
-    parser.add_argument('-v', help='verbose', action='store_true')
 
     print
     main(vars(parser.parse_args()))
