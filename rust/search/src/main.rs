@@ -95,7 +95,7 @@ fn collect_info_texts(archive_path: &path::PathBuf) -> Vec<InfoText> {
 }
 
 
-fn collect_search_results(info_texts: Vec<InfoText>, search_str: &String)
+fn collect_search_results(info_texts: &Vec<InfoText>, search_str: &String)
 -> Option<Vec<SearchResult>> {
 	let mut search_results :Vec<SearchResult> = Vec::new();
 
@@ -127,7 +127,7 @@ fn main() {
 		archive_path, search_str);
 
 	let info_texts = collect_info_texts(&archive_path);
-	let search_results = collect_search_results(info_texts, &search_str);
+	let search_results = collect_search_results(&info_texts, &search_str);
 	match search_results {
 		Some(search_results) => {
 			println!();
