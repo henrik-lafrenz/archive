@@ -60,11 +60,11 @@ fn info_text(zip_path: &path::PathBuf) -> Option<String> {
 	for i in 0..zip.len() {
 		let mut zipped_file = zip.by_index(i).expect("couldn't get zipped file");
 		if zipped_file.name().ends_with("info.txt") {
-			let mut buffer = String::new();
-			let res = zipped_file.read_to_string(&mut buffer);
+			let mut info_text = String::new();
+			let res = zipped_file.read_to_string(&mut info_text);
 			match res {
 				Ok(_v) => {
-					found = Some(buffer);
+					found = Some(info_text);
 					break;
 				},
 				Err(e) => println!("couldn't read info text: {:?}", e),
