@@ -28,19 +28,19 @@ impl fmt::Display for SearchResult {
 		write!(f, "{}\n", Green.paint(self.info_text.path.to_str().unwrap()))?;
 
 		let search_str_lower = &self.search_str.to_lowercase();
-		let mut substr = self.info_text.text.clone();
+		let mut before = self.info_text.text.clone();
 		loop {
-			let found = substr.to_lowercase().find(search_str_lower);
+			let found = before.to_lowercase().find(search_str_lower);
 			match found {
 				Some(index) => {
-					let mut search_str_case = substr.split_off(index);
-					let remain = search_str_case.split_off(self.search_str.len());
+					let mut search_str_case = before.split_off(index);
+					let after = search_str_case.split_off(self.search_str.len());
 					write!(f, "{}{}",
-						substr, Yellow.underline().paint(search_str_case))?;
-					substr = remain;
+						before, Yellow.underline().paint(search_str_case))?;
+					before = after;
 				},
 				None => {
-					write!(f, "{}", substr)?;
+					write!(f, "{}", before)?;
 					break;
 				},
 			}
