@@ -54,22 +54,32 @@ impl fmt::Display for SearchResult {
 
 fn info_text(zip_path: &path::PathBuf) -> Option<String> {
 	let file = fs::File::open(zip_path).expect("couldn't open zip path");
-	let mut zip = read::ZipArchive::new(file).expect("couldn't instantiate zip");
+	let res = read::ZipArchive::new(file);
 	let mut found = None;
 
-	for i in 0..zip.len() {
-		let mut zipped_file = zip.by_index(i).expect("couldn't get zipped file");
-		if zipped_file.name().ends_with("info.txt") {
-			let mut info_text = String::new();
-			let res = zipped_file.read_to_string(&mut info_text);
-			match res {
-				Ok(_v) => {
-					found = Some(info_text);
-					break;
-				},
-				Err(e) => println!("couldn't read info text: {:?}", e),
+	match res {
+		Ok(mut zip) => {
+			for i in 0..zip.len() {
+				let res = zip.by_index(i);
+				match res {
+					Ok(mut zipped_file) => {
+						if zipped_file.name().ends_with("info.txt") {
+
+							let mut info_text = String::new();
+							zipped_file.read_to_string(&mut info_text).expect(
+								"couldn't read zipped file");
+
+							found = Some(info_text);
+							break;
+						}
+					},
+					Err(e) => println!("couldn't get zipped file in {:?}: {:?}",
+						zip_path, e),
+				}
 			}
-		}
+		},
+		Err(e) => println!("couldn't instantiate zip object for {:?}: {:?}",
+			zip_path, e),
 	}
 
 	found
