@@ -1,6 +1,7 @@
 extern crate ansi_term;
 extern crate zip;
 
+use std::collections::VecDeque;
 use std::vec::Vec;
 use std::{env, fmt, fs, path};
 use std::io::Read;
@@ -10,7 +11,6 @@ use ansi_term::Colour::{Green, Yellow};
 use zip::read;
 
 
-#[derive(Clone)]
 struct InfoText {
 	path: path::PathBuf,
 	text: String,
@@ -76,8 +76,8 @@ fn info_text(zip_path: &path::PathBuf) -> Option<String> {
 }
 
 
-fn collect_info_texts(archive_path: &path::PathBuf) -> Vec<InfoText> {
-	let mut info_texts :Vec<InfoText> = Vec::new();
+fn collect_info_texts(archive_path: &path::PathBuf) -> VecDeque<InfoText> {
+	let mut info_texts :VecDeque<InfoText> = VecDeque::new();
 
 	for e in fs::read_dir(archive_path).expect("couldn't read archive path") {
 		let entry = e.expect("couldn't get entry");
@@ -86,7 +86,7 @@ fn collect_info_texts(archive_path: &path::PathBuf) -> Vec<InfoText> {
 		if ext.is_some() && ext.unwrap() == "zip" {
 			let it = info_text(&item_path);
 			if it.is_some() {
-				info_texts.push(InfoText{path: item_path, text: it.unwrap()});
+				info_texts.push_back(InfoText{path: item_path, text: it.unwrap()});
 			}
 		}
 	}
@@ -95,18 +95,26 @@ fn collect_info_texts(archive_path: &path::PathBuf) -> Vec<InfoText> {
 }
 
 
-fn collect_search_results(info_texts: &Vec<InfoText>, search_str: &String)
+fn collect_search_results(info_texts: &mut VecDeque<InfoText>, search_str: &String)
 -> Option<Vec<SearchResult>> {
 	let mut search_results :Vec<SearchResult> = Vec::new();
 
-	for info_text in info_texts.iter() {
-		let found = info_text.text.to_lowercase().find(&search_str.to_lowercase());
-		if found.is_some() {
-			search_results.push(
-				SearchResult{
-					info_text: info_text.clone(),
-					search_str: search_str.clone(),
-				});
+	loop {
+		let result = info_texts.pop_front();
+		match result {
+			Some(info_text) => {
+				let found = info_text.text.to_lowercase().find(
+					&search_str.to_lowercase());
+
+				if found.is_some() {
+					search_results.push(
+						SearchResult{
+							info_text: info_text,
+							search_str: search_str.clone(),
+						});
+				}
+			},
+			None => break,
 		}
 	}
 
@@ -126,8 +134,8 @@ fn main() {
 	println!("\nSearching info texts in path {:?} for {:?}...",
 		archive_path, search_str);
 
-	let info_texts = collect_info_texts(&archive_path);
-	let search_results = collect_search_results(&info_texts, &search_str);
+	let mut info_texts = collect_info_texts(&archive_path);
+	let search_results = collect_search_results(&mut info_texts, &search_str);
 	match search_results {
 		Some(search_results) => {
 			println!();
