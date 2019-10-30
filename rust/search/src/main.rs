@@ -59,8 +59,7 @@ fn info_text(zip_path: &path::PathBuf) -> Option<String> {
 
 	for i in 0..zip.len() {
 		let mut zipped_file = zip.by_index(i).expect("couldn't get zipped file");
-		let find_i = zipped_file.name().find("info.txt");
-		if find_i.is_some() {
+		if zipped_file.name().ends_with("info.txt") {
 			let mut buffer = String::new();
 			let res = zipped_file.read_to_string(&mut buffer);
 			match res {
