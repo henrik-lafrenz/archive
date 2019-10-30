@@ -1,18 +1,55 @@
+extern crate ansi_term;
 extern crate zip;
 
 use std::{env, fs};
+use std::fmt;
 use std::io::Read;
+
+use ansi_term::Colour::{Green, Yellow};
 
 use zip::read;
 
 
+#[derive(Clone)]
 struct InfoText {
 	path: std::path::PathBuf,
 	text: String,
 }
 
 
-const PADDING: usize = 20;
+struct SearchResult {
+	info_text: InfoText,
+	search_str: String,
+}
+
+
+
+impl fmt::Display for SearchResult {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		write!(f, "{}\n", Green.paint(self.info_text.path.to_str().unwrap()))?;
+
+		let search_str_lower = &self.search_str.to_lowercase();
+		let mut substr = self.info_text.text.clone();
+		loop {
+			let found = substr.to_lowercase().find(search_str_lower);
+			match found {
+				Some(index) => {
+					let mut search_str_case = substr.split_off(index);
+					let remain = search_str_case.split_off(self.search_str.len());
+					write!(f, "{}{}",
+						substr, Yellow.underline().paint(search_str_case))?;
+					substr = remain;
+				},
+				None => {
+					write!(f, "{}", substr)?;
+					break;
+				},
+			}
+		}
+
+		Ok(())
+	}
+}
 
 
 fn info_text(zip_path: &std::path::PathBuf) -> Option<String> {
@@ -40,28 +77,25 @@ fn info_text(zip_path: &std::path::PathBuf) -> Option<String> {
 }
 
 
-fn print_results(info_texts: &std::vec::Vec<InfoText>, search_str: &String) {
+fn collect_search_results(info_texts: std::vec::Vec<InfoText>, search_str: &String)
+-> Option<std::vec::Vec<SearchResult>> {
+	let mut search_results :std::vec::Vec<SearchResult> = std::vec::Vec::new();
+
 	for info_text in info_texts.iter() {
-		println!("\n[{}]\n", info_text.path.to_str().unwrap());
-
-		let mut substr = info_text.text.clone();
-		let mut index: usize = 0;
-		loop {
-			substr = substr[index..].to_string();
-			let found = substr.to_lowercase().find(&search_str.to_lowercase());
-			if found.is_some() {
-				let begin = found.unwrap();
-				let end = begin + search_str.len();
-				let padded_begin = begin - std::cmp::min(begin, PADDING);
-				let padded_end = end + std::cmp::min(substr.len() - begin - search_str.len(), PADDING);
-
-				print!("{} --- ", substr[padded_begin..padded_end].to_string());
-				index = end;
-			} else {
-				println!();
-				break;
-			}
+		let found = info_text.text.to_lowercase().find(&search_str.to_lowercase());
+		if found.is_some() {
+			search_results.push(
+				SearchResult{
+					info_text: info_text.clone(),
+					search_str: search_str.clone(),
+				});
 		}
+	}
+
+	if !search_results.is_empty() {
+		Some(search_results)
+	} else {
+		None
 	}
 }
 
@@ -92,6 +126,17 @@ fn main() {
 		archive_path, search_str);
 
 	let info_texts = collect_info_texts(&archive_path);
-	print_results(&info_texts, &search_str);
+
+	let search_results = collect_search_results(info_texts, &search_str);
+	match search_results {
+		Some(search_results) => {
+			println!();
+			for search_result in search_results.iter() {
+				println!("{}\n", search_result);
+			}
+		},
+		None => println!("no search results"),
+	}
+
 	println!("...done.")
 }
