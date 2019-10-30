@@ -23,7 +23,6 @@ struct SearchResult {
 }
 
 
-
 impl fmt::Display for SearchResult {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		write!(f, "{}\n", Green.paint(self.info_text.path.to_str().unwrap()))?;
@@ -77,6 +76,24 @@ fn info_text(zip_path: &std::path::PathBuf) -> Option<String> {
 }
 
 
+fn collect_info_texts(archive_path: &std::path::PathBuf) -> std::vec::Vec<InfoText> {
+	let mut info_texts :std::vec::Vec<InfoText> = std::vec::Vec::new();
+	for e in fs::read_dir(archive_path).expect("couldn't read archive path") {
+		let entry = e.expect("couldn't get entry");
+		let item_path = entry.path();
+		let ext = item_path.extension();
+		if ext.is_some() && ext.unwrap() == "zip" {
+			let it = info_text(&item_path);
+			if it.is_some() {
+				info_texts.push(InfoText{path: item_path, text: it.unwrap()});
+			}
+		}
+	}
+
+	info_texts
+}
+
+
 fn collect_search_results(info_texts: std::vec::Vec<InfoText>, search_str: &String)
 -> Option<std::vec::Vec<SearchResult>> {
 	let mut search_results :std::vec::Vec<SearchResult> = std::vec::Vec::new();
@@ -97,24 +114,6 @@ fn collect_search_results(info_texts: std::vec::Vec<InfoText>, search_str: &Stri
 	} else {
 		None
 	}
-}
-
-
-fn collect_info_texts(archive_path: &std::path::PathBuf) -> std::vec::Vec<InfoText> {
-	let mut info_texts :std::vec::Vec<InfoText> = std::vec::Vec::new();
-	for e in fs::read_dir(archive_path).expect("couldn't read archive path") {
-		let entry = e.expect("couldn't get entry");
-		let item_path = entry.path();
-		let ext = item_path.extension();
-		if ext.is_some() && ext.unwrap() == "zip" {
-			let it = info_text(&item_path);
-			if it.is_some() {
-				info_texts.push(InfoText{path: item_path, text: it.unwrap()});
-			}
-		}
-	}
-
-	info_texts
 }
 
 
