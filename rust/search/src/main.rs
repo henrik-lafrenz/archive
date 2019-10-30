@@ -1,8 +1,8 @@
 extern crate ansi_term;
 extern crate zip;
 
-use std::{env, fs};
-use std::fmt;
+use std::vec::Vec;
+use std::{env, fmt, fs, path};
 use std::io::Read;
 
 use ansi_term::Colour::{Green, Yellow};
@@ -12,7 +12,7 @@ use zip::read;
 
 #[derive(Clone)]
 struct InfoText {
-	path: std::path::PathBuf,
+	path: path::PathBuf,
 	text: String,
 }
 
@@ -51,8 +51,8 @@ impl fmt::Display for SearchResult {
 }
 
 
-fn info_text(zip_path: &std::path::PathBuf) -> Option<String> {
-	let file = std::fs::File::open(zip_path).expect("couldn't open zip path");
+fn info_text(zip_path: &path::PathBuf) -> Option<String> {
+	let file = fs::File::open(zip_path).expect("couldn't open zip path");
 	let mut zip = read::ZipArchive::new(file).expect("couldn't instantiate zip");
 	let mut found = None;
 
@@ -76,8 +76,8 @@ fn info_text(zip_path: &std::path::PathBuf) -> Option<String> {
 }
 
 
-fn collect_info_texts(archive_path: &std::path::PathBuf) -> std::vec::Vec<InfoText> {
-	let mut info_texts :std::vec::Vec<InfoText> = std::vec::Vec::new();
+fn collect_info_texts(archive_path: &path::PathBuf) -> Vec<InfoText> {
+	let mut info_texts :Vec<InfoText> = Vec::new();
 	for e in fs::read_dir(archive_path).expect("couldn't read archive path") {
 		let entry = e.expect("couldn't get entry");
 		let item_path = entry.path();
@@ -94,9 +94,9 @@ fn collect_info_texts(archive_path: &std::path::PathBuf) -> std::vec::Vec<InfoTe
 }
 
 
-fn collect_search_results(info_texts: std::vec::Vec<InfoText>, search_str: &String)
--> Option<std::vec::Vec<SearchResult>> {
-	let mut search_results :std::vec::Vec<SearchResult> = std::vec::Vec::new();
+fn collect_search_results(info_texts: Vec<InfoText>, search_str: &String)
+-> Option<Vec<SearchResult>> {
+	let mut search_results :Vec<SearchResult> = Vec::new();
 
 	for info_text in info_texts.iter() {
 		let found = info_text.text.to_lowercase().find(&search_str.to_lowercase());
@@ -119,7 +119,7 @@ fn collect_search_results(info_texts: std::vec::Vec<InfoText>, search_str: &Stri
 
 fn main() {
 	assert!(env::args().skip(1).len() == 2);
-	let archive_path = std::path::PathBuf::from(env::args().nth(1).unwrap());
+	let archive_path = path::PathBuf::from(env::args().nth(1).unwrap());
 	let search_str = env::args().nth(2).unwrap();
 	println!("\nSearching info texts in path {:?} for {:?}...",
 		archive_path, search_str);
