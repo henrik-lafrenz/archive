@@ -29,6 +29,7 @@ impl fmt::Display for SearchResult {
 
 		let search_str_lower = &self.search_str.to_lowercase();
 		let mut before = self.info_text.text.clone();
+
 		loop {
 			let found = before.to_lowercase().find(search_str_lower);
 			match found {
@@ -78,6 +79,7 @@ fn info_text(zip_path: &path::PathBuf) -> Option<String> {
 
 fn collect_info_texts(archive_path: &path::PathBuf) -> Vec<InfoText> {
 	let mut info_texts :Vec<InfoText> = Vec::new();
+
 	for e in fs::read_dir(archive_path).expect("couldn't read archive path") {
 		let entry = e.expect("couldn't get entry");
 		let item_path = entry.path();
@@ -121,11 +123,11 @@ fn main() {
 	assert!(env::args().skip(1).len() == 2);
 	let archive_path = path::PathBuf::from(env::args().nth(1).unwrap());
 	let search_str = env::args().nth(2).unwrap();
+
 	println!("\nSearching info texts in path {:?} for {:?}...",
 		archive_path, search_str);
 
 	let info_texts = collect_info_texts(&archive_path);
-
 	let search_results = collect_search_results(info_texts, &search_str);
 	match search_results {
 		Some(search_results) => {
