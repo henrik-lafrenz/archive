@@ -1,55 +1,14 @@
-extern crate ansi_term;
 extern crate zip;
 
 use std::collections::VecDeque;
 use std::vec::Vec;
-use std::{env, fmt, fs, path};
+use std::{env, fs, path};
 use std::io::Read;
 
-use ansi_term::Colour::{Green, Yellow};
 
 use zip::read;
 
-
-struct InfoText {
-	path: path::PathBuf,
-	text: String,
-}
-
-
-struct SearchResult {
-	info_text: InfoText,
-	search_str: String,
-}
-
-
-impl fmt::Display for SearchResult {
-	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		write!(f, "{}\n", Green.paint(self.info_text.path.to_str().unwrap()))?;
-
-		let search_str_lower = &self.search_str.to_lowercase();
-		let mut before = self.info_text.text.clone();
-
-		loop {
-			let found = before.to_lowercase().find(search_str_lower);
-			match found {
-				Some(index) => {
-					let mut search_str_case = before.split_off(index);
-					let after = search_str_case.split_off(self.search_str.len());
-					write!(f, "{}{}",
-						before, Yellow.underline().paint(search_str_case))?;
-					before = after;
-				},
-				None => {
-					write!(f, "{}", before)?;
-					break;
-				},
-			}
-		}
-
-		Ok(())
-	}
-}
+mod data_types;
 
 
 fn info_text(zip_path: &path::PathBuf) -> Option<String> {
@@ -86,8 +45,8 @@ fn info_text(zip_path: &path::PathBuf) -> Option<String> {
 }
 
 
-fn collect_info_texts(archive_path: &path::PathBuf) -> VecDeque<InfoText> {
-	let mut info_texts :VecDeque<InfoText> = VecDeque::new();
+fn collect_info_texts(archive_path: &path::PathBuf) -> VecDeque<data_types::InfoText> {
+	let mut info_texts :VecDeque<data_types::InfoText> = VecDeque::new();
 
 	for e in fs::read_dir(archive_path).expect("couldn't read archive path") {
 		let entry = e.expect("couldn't get entry");
@@ -96,7 +55,10 @@ fn collect_info_texts(archive_path: &path::PathBuf) -> VecDeque<InfoText> {
 		if ext.is_some() && ext.unwrap() == "zip" {
 			let it = info_text(&item_path);
 			if it.is_some() {
-				info_texts.push_back(InfoText{path: item_path, text: it.unwrap()});
+				info_texts.push_back(data_types::InfoText{
+						path: item_path,
+						text: it.unwrap()
+					});
 			}
 		}
 	}
@@ -105,9 +67,11 @@ fn collect_info_texts(archive_path: &path::PathBuf) -> VecDeque<InfoText> {
 }
 
 
-fn collect_search_results(info_texts: &mut VecDeque<InfoText>, search_str: &String)
--> Option<Vec<SearchResult>> {
-	let mut search_results :Vec<SearchResult> = Vec::new();
+fn collect_search_results(
+	info_texts: &mut VecDeque<data_types::InfoText>,
+	search_str: &String) -> Option<Vec<data_types::SearchResult>> {
+
+	let mut search_results :Vec<data_types::SearchResult> = Vec::new();
 
 	loop {
 		let result = info_texts.pop_front();
@@ -118,7 +82,7 @@ fn collect_search_results(info_texts: &mut VecDeque<InfoText>, search_str: &Stri
 
 				if found.is_some() {
 					search_results.push(
-						SearchResult{
+						data_types::SearchResult{
 							info_text: info_text,
 							search_str: search_str.clone(),
 						});
