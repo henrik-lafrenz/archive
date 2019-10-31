@@ -1,3 +1,4 @@
+extern crate ansi_escapes;
 extern crate zip;
 
 use std::collections::VecDeque;
@@ -100,6 +101,27 @@ fn collect_search_results(
 }
 
 
+fn should_continue() -> bool {
+	println!("? c(continue), q(quit)");
+	let mut input = String::new();
+	let boolean_res: bool;
+	loop {
+		std::io::stdin().read_line(&mut input).unwrap();
+		if input.trim() == "c" {
+			boolean_res = true;
+			break;
+		} else if input.trim() == "q" {
+			boolean_res = false;
+			break;
+		} else {
+			input.clear();
+		}
+	}
+
+	boolean_res
+}
+
+
 fn main() {
 	assert!(env::args().skip(1).len() == 2);
 	let archive_path = path::PathBuf::from(env::args().nth(1).unwrap());
@@ -113,8 +135,16 @@ fn main() {
 	match search_results {
 		Some(search_results) => {
 			println!();
-			for search_result in search_results.iter() {
+			for (index, search_result) in search_results.iter().enumerate() {
 				println!("{}\n", search_result);
+				if index + 1 < search_results.len() && should_continue() {
+					print!("{}", ansi_escapes::EraseLines(3));
+					continue;
+				} else {
+					break;
+				}
+
+
 			}
 		},
 		None => println!("no search results"),
